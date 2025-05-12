@@ -17,12 +17,12 @@ export default {
 
       let requestBody;
 
-      // Support both 'messages' and 'prompt' formats
+      // Handle both messages and prompt
       if (userInput.messages) {
         requestBody = {
           model: "gpt-4o",
           messages: userInput.messages,
-          max_tokens: 500,
+          max_tokens: 300,
         };
       } else if (userInput.prompt) {
         requestBody = {
@@ -31,23 +31,19 @@ export default {
             {
               role: "system",
               content:
-                "You are a helpful L'Oréal skincare routine advisor. You will be given a list of products and their details. Based on this information, create a personalized skincare routine. Include steps, time of day (AM/PM), and tips. Be concise and clear. Maintain a friendly and professional tone.",
+                "You are a helpful L'Oréal skincare routine advisor. Create a personalized skincare routine from provided product details. Be concise and clear.",
             },
             { role: "user", content: userInput.prompt },
           ],
-          max_tokens: 500,
+          max_tokens: 300,
         };
       } else {
-        return new Response(
-          JSON.stringify({ response: "Invalid input format." }),
-          {
-            headers: corsHeaders,
-            status: 400,
-          }
-        );
+        return new Response(JSON.stringify({ response: "Invalid input" }), {
+          headers: corsHeaders,
+        });
       }
 
-      const response = await fetch(
+      const openaiRes = await fetch(
         "https://api.openai.com/v1/chat/completions",
         {
           method: "POST",
@@ -59,20 +55,14 @@ export default {
         }
       );
 
-      const data = await response.json();
-
-      // Optional: Log for debugging
-      console.log(JSON.stringify(data));
+      const data = await openaiRes.json();
 
       const aiReply = data?.choices?.[0]?.message?.content;
 
       if (!aiReply) {
         return new Response(
           JSON.stringify({ response: "OpenAI returned no content." }),
-          {
-            headers: corsHeaders,
-            status: 502,
-          }
+          { headers: corsHeaders }
         );
       }
 
@@ -80,14 +70,9 @@ export default {
         headers: corsHeaders,
       });
     } catch (error) {
-      console.error("Error calling OpenAI:", error);
-
       return new Response(
         JSON.stringify({ response: "Server error when contacting OpenAI." }),
-        {
-          headers: corsHeaders,
-          status: 500,
-        }
+        { headers: corsHeaders, status: 500 }
       );
     }
   },

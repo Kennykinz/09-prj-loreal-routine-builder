@@ -102,7 +102,7 @@ chatForm.addEventListener("submit", async (e) => {
     content: div.textContent,
   }));
 
-  const res = await fetch(CLOUDLFARE_WORKER_URL, {
+  const res = await fetch("https://your-worker-url.workers.dev", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ messages }),
