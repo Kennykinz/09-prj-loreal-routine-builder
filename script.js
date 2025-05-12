@@ -5,7 +5,7 @@ const chatForm = document.getElementById("chatForm");
 const chatWindow = document.getElementById("chatWindow");
 
 const CLOUDLFARE_WORKER_URL =
-  "https://lorealagain.kennedyannlorenzen.workers.dev/"; // Replace with your Cloudflare Worker URL
+  "https://lorealagain.kennedyannlorenzen.workers.dev/";
 
 /* Show initial placeholder until user selects a category */
 productsContainer.innerHTML = `
