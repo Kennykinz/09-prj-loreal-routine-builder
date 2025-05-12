@@ -102,44 +102,67 @@ chatForm.addEventListener("submit", async (e) => {
     content: div.textContent,
   }));
 
-  const res = await fetch("https://your-worker-url.workers.dev", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ messages }),
-  });
+  const res = await fetch(
+    "https://lorealagain.kennedyannlorenzen.workers.dev/",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ messages }),
+    }
+  );
 
   const data = await res.json();
   addMessageToChat("bot", data.response || "Sorry, I didn't catch that.");
 });
-
-const generateBtn = document.getElementById("generateRoutine");
 
 generateBtn.addEventListener("click", async () => {
   if (selectedProducts.length === 0) return;
 
   addMessageToChat("user", "Generate a routine for these products, please!");
 
-  const prompt = `
-  Based on the following L'Oréal products, create a personalized routine. Include steps, time of day (AM/PM), and tips. Be concise and clear.
+  const userPrompt = `
+Based on the following L'Oréal products, create a personalized skincare routine. 
+Include steps, time of day (AM/PM), and any relevant tips. Be concise and clear.
 
-  ${selectedProducts
-    .map(
-      (p) =>
-        `Name: ${p.name}\nBrand: ${p.brand}\nCategory: ${p.category}\nDescription: ${p.description}\n`
-    )
-    .join("\n")}`;
+${selectedProducts
+  .map(
+    (p) =>
+      `Name: ${p.name}\nBrand: ${p.brand}\nCategory: ${p.category}\nDescription: ${p.description}`
+  )
+  .join("\n\n")}
+`;
 
-  const res = await fetch(CLOUDLFARE_WORKER_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ prompt }),
-  });
+  const messages = [
+    {
+      role: "system",
+      content:
+        "You are a helpful L'Oréal skincare routine advisor. You will be given a list of products and their details. Based on this information, create a personalized skincare routine. Include steps, time of day (AM/PM), and tips. Be concise and clear. You are to maintain a friendly and professional tone.",
+    },
+    {
+      role: "user",
+      content: userPrompt,
+    },
+  ];
 
-  const data = await res.json();
-  addMessageToChat(
-    "bot",
-    data.response || "Sorry, I couldn't generate a routine."
-  );
+  try {
+    const res = await fetch(CLOUDLFARE_WORKER_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ messages }),
+    });
+
+    const data = await res.json();
+    const reply =
+      data.choices?.[0]?.message?.content ||
+      "Sorry, I couldn't generate a routine.";
+    addMessageToChat("bot", reply);
+  } catch (err) {
+    console.error("Error fetching routine:", err);
+    addMessageToChat(
+      "bot",
+      "There was a problem contacting the routine advisor."
+    );
+  }
 });
 
 function addMessageToChat(sender, message) {
